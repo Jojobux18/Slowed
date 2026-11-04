@@ -1,0 +1,174 @@
+
+local a=game:GetService("Players")
+local b=game:GetService("ReplicatedStorage")
+local c=game:GetService("RunService")
+local d=game:GetService("UserInputService")
+local e=a.LocalPlayer
+local f=e:WaitForChild("PlayerGui")
+local g=0.25
+local h=60
+local i=false
+local j=nil
+local k=nil
+local l=nil
+local m=false
+local n=false
+local o=false
+local p=false
+local q=0
+
+local r=Instance.new("ScreenGui")
+r.Name="ControleRespawn"
+r.ResetOnSpawn=false
+r.DisplayOrder=10
+r.Parent=f
+
+local s=Instance.new("TextButton")
+s.Name="LigaDesliga"
+s.Size=UDim2.fromOffset(h,h)
+s.Position=UDim2.new(0,20,0.5,-30)
+s.BackgroundColor3=Color3.fromRGB(180,45,45)
+s.TextColor3=Color3.new(1,1,1)
+s.Text="OFF"
+s.Font=Enum.Font.GothamBold
+s.TextSize=16
+s.AutoButtonColor=false
+s.Active=true
+s.Parent=r
+
+local t=Instance.new("UICorner")
+t.CornerRadius=UDim.new(0,12)
+t.Parent=s
+
+local u=Instance.new("UIStroke")
+u.Color=Color3.fromRGB(235,235,235)
+u.Thickness=2
+u.Parent=s
+
+local v=nil
+local w=nil
+local x=nil
+local y=false
+
+s.InputBegan:Connect(function(z)
+local A=z.UserInputType
+if v then return end
+if A~=Enum.UserInputType.MouseButton1 and A~=Enum.UserInputType.Touch then return end
+v=z
+w=z.Position
+x=s.Position
+y=false
+end)
+
+d.InputChanged:Connect(function(z)
+if not v then return end
+local A=v.UserInputType==Enum.UserInputType.Touch
+if A then
+if z~=v then return end
+elseif z.UserInputType~=Enum.UserInputType.MouseMovement then
+return
+end
+local B=z.Position-w
+if B.Magnitude>8 then y=true end
+if y then
+s.Position=UDim2.new(x.X.Scale,x.X.Offset+B.X,x.Y.Scale,x.Y.Offset+B.Y)
+end
+end)
+
+d.InputEnded:Connect(function(z)
+if z==v then v=nil end
+end)
+
+local function C()
+s.Text=i and "ON" or "OFF"
+s.BackgroundColor3=i and Color3.fromRGB(40,170,85) or Color3.fromRGB(180,45,45)
+end
+
+s.Activated:Connect(function()
+if y then return end
+i=not i
+q+=1
+j=nil
+n=false
+m=false
+if i and not p then
+local A=e.Character
+local B=A and A:FindFirstChild("HumanoidRootPart")
+local D=A and A:FindFirstChildOfClass("Humanoid")
+if B and D and D.Health>0 then
+j=B.CFrame
+m=true
+end
+end
+C()
+end)
+
+local E=b:WaitForChild("Events"):WaitForChild("SpawnEvent")
+
+local function F(A,B)
+return k==A and e.Character==A and A.Parent~=nil and B.Parent~=nil
+end
+
+local function G(A,B,D)
+local H=D*B.CFrame:Inverse()
+A:PivotTo(H*A:GetPivot())
+B.AssemblyLinearVelocity=Vector3.zero
+B.AssemblyAngularVelocity=Vector3.zero
+end
+
+c.Heartbeat:Connect(function()
+if not i or not m or n or p then return end
+local A=k
+if not A or e.Character~=A then return end
+local B=A:FindFirstChild("HumanoidRootPart")
+local D=A:FindFirstChildOfClass("Humanoid")
+if B and D and D.Health>0 then
+j=B.CFrame
+end
+end)
+
+local function I(A)
+if k==A then return end
+k=A
+m=false
+n=i
+p=false
+if l then
+l:Disconnect()
+l=nil
+end
+local J=q
+local K=i and j or nil
+local D=A:FindFirstChildOfClass("Humanoid") or A:WaitForChild("Humanoid",5)
+if k~=A then return end
+if not D then n=false return end
+local L=D.Health
+l=D.HealthChanged:Connect(function(M)
+local N=M<L
+L=M
+if not i or k~=A or e.Character~=A or not N or p then return end
+p=true
+m=false
+local B=A:FindFirstChild("HumanoidRootPart")
+if not n and B then j=B.CFrame end
+E:FireServer("Human","human_none","Human")
+end)
+local B=A:FindFirstChild("HumanoidRootPart") or A:WaitForChild("HumanoidRootPart",5)
+if k~=A then return end
+if not B then n=false return end
+if K and i and J==q then
+local O=os.clock()+g
+repeat
+if not F(A,B) then return end
+if not i or J~=q then break end
+G(A,B,K)
+c.Heartbeat:Wait()
+until os.clock()>=O
+end
+if not F(A,B) then return end
+n=false
+m=i and not p
+end
+
+e.CharacterAdded:Connect(I)
+if e.Character then task.spawn(I,e.Character) end
